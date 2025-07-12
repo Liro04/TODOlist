@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - TODO List</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 370px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(44, 62, 80, 0.18);
+            padding: 2.5em 2em 2em 2em;
+            animation: fadeIn 0.7s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(40px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        h2 {
+            text-align: center;
+            font-weight: 600;
+            color: #2d3a4b;
+            margin-bottom: 1.5em;
+            letter-spacing: 1px;
+        }
+        .form-group { margin-bottom: 1.2em; }
+        label {
+            display: block;
+            margin-bottom: 0.5em;
+            color: #2d3a4b;
+            font-size: 1em;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+    padding: 1em 1.1em;
+    border: 1.5px solid #e0e4ea;
+    border-radius: 6px;
+    font-size: 1.08em;
+    background: #f7fafd;
+    transition: border 0.2s;
+    outline: none;
+    box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            border: 1.5px solid #74ebd5;
+            background: #fff;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.8em;
+            background: linear-gradient(90deg, #74ebd5 0%, #ACB6E5 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 0.5em;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn:disabled {
+            background: #b2bec3;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #e74c3c;
+            background: #fdecec;
+            border-radius: 4px;
+            padding: 0.7em 1em;
+            margin-bottom: 1em;
+            font-size: 0.98em;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin-bottom: 1em;
+            color: #0984e3;
+            font-weight: 500;
+            display: none;
+        }
+        .show-password {
+            display: flex;
+            align-items: center;
+            margin-top: -0.5em;
+            margin-bottom: 1em;
+            font-size: 0.97em;
+            color: #636e72;
+        }
+        .show-password input[type="checkbox"] {
+            margin-right: 0.5em;
+            accent-color: #74ebd5;
+        }
+        @media (max-width: 500px) {
+            .login-container { padding: 1.5em 0.7em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" tabindex="-1">
+        <h2>Log in </h2>
+        <div id="error" class="error"></div>
+        <div id="loading" class="loading">Authenticating...</div>
+        <form id="loginForm" autocomplete="on" novalidate>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" required autocomplete="username" autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" required autocomplete="current-password">
+            </div>
+            <div class="show-password">
+                <input type="checkbox" id="togglePassword">
+                <label for="togglePassword" style="margin:0;cursor:pointer;">Show password</label>
+            </div>
+            <button class="btn" type="submit" id="loginBtn">Login</button>
+        </form>
+    </div>
+    <script>
+        const form = document.getElementById('loginForm');
+        const errorDiv = document.getElementById('error');
+        const loadingDiv = document.getElementById('loading');
+        const loginBtn = document.getElementById('loginBtn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+
+        // Show/hide password
+        togglePassword.addEventListener('change', () => {
+            passwordInput.type = togglePassword.checked ? 'text' : 'password';
+        });
+
+        // Focus username on load
+        window.onload = () => {
+            usernameInput.focus();
+        };
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            loginBtn.disabled = true;
+
+            // Basic validation
+            if (!usernameInput.value.trim() || !passwordInput.value.trim()) {
+                errorDiv.textContent = 'Please enter both username and password.';
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+                loginBtn.disabled = false;
+                usernameInput.focus();
+                return;
+            }
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Incorrect username or password.');
+                    } else {
+                        throw new Error('Server error. Please try again later.');
+                    }
+                }
+
+                const data = await response.json();
+                if (data.token) {
+                    localStorage.setItem('jwt_token', data.token);
+                    loadingDiv.textContent = 'Login successful! Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 900);
+                } else {
+                    throw new Error('No token received from server.');
+                }
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loadingDiv.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
