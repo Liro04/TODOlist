@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                background: #f0f4f8;
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+                margin-top: 40px;
+            }
+            ul {
+                max-width: 400px;
+                margin: 24px auto 0 auto;
+                padding: 0;
+                list-style: none;
+            }
+            li {
+                background: #e3eaf2;
+                margin-bottom: 10px;
+                padding: 12px 18px;
+                border-radius: 5px;
+                font-size: 17px;
+                color: #222;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            li span.done {
+                text-decoration: line-through;
+                color: #888;
+            }
+            input[type="checkbox"] {
+                accent-color: #007bfc;
+                width: 18px;
+                height: 18px;
+                margin-right: 12px;
+                cursor: pointer;
+            }
+            form {
+                display: flex;
+                justify-content: center;
+                margin: 30px 0;
+            }
+            input[type="text"]{
+                width: 220px;
+                padding: 8px;
+                border: 1px solid #bbb;
+                border-radius: 4px;
+                margin-right: 10px;
+                font-size: 16px;
+            }
+            button[type="submit"]{
+                padding: 8px 18px;
+                background: #007bfc;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            button[type="submit"]:hover {
+                background: #005bb5;
+            }
+        </style>
+        <title>TODO List</title>
+    </head>
+    <body>
+        <h1>{{app_name}}</h1>
+        <ul>
+            {% for item in items %}
+            <li>
+                <span class="{% if item.is_done %}done{% endif %}" id="text-{{ loop.index0 }}">{{ item.text }}</span>
+                <input type="checkbox" data-id="{{ loop.index0 }}" {% if item.is_done %}checked{% endif %}>
+            </li>
+            {% endfor %}
+        </ul>
+        <form action="/add" method="post">
+            <input type="text" name="text" placeholder="New TODO" required>
+            <button type="submit">Add</button>
+        </form>
+        <script>
+        document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const itemId = this.getAttribute('data-id');
+                fetch(`/toggle/${itemId}`, {method: 'POST'})
+                  .then(() => {
+                    // Optionally update the text style without reload
+                    const text = document.getElementById('text-' + itemId);
+                    if (this.checked) {
+                        text.classList.add('done');
+                    } else {
+                        text.classList.remove('done');
+                    }
+                  });
+            });
+        });
+        </script>
+    </body>
+</html>
+
