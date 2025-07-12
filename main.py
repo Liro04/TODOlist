@@ -1,13 +1,13 @@
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import Request, FastAPI, HTTPException, Form
 from fastapi.responses import RedirectResponse           
 from pydantic import BaseModel
+from auth import router as auth_router
 
 app = FastAPI()
+app.include_router(auth_router)
 
 templates = Jinja2Templates(directory="templates")
-
 items = []
 
 class Item(BaseModel):
@@ -21,7 +21,7 @@ def add_item(request: Request, text: str = Form(...)):
 
 @app.get("/todo")
 def read_todo(request: Request):
-    return templates.TemplateResponse("todo.html", {"request": request, "items": items})
+    return templates.TemplateResponse("todo.html", {"request": request, "app_name": "My TODO App", "items": items})
 
 @app.get("/")
 def root():
